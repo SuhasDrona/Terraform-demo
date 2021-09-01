@@ -83,12 +83,12 @@ resource "aws_subnet" "main-private-subnet" {
 resource "aws_instance" "myec2" {
   ami                    = "ami-04b6c97b14c54de18"
   instance_type          = "t2.micro"
-  key_name               = "terraform-remote-exec"
+  key_name               = "terraform-remote-exec-test"
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
-  subnet_id              = [aws_subnet.main-public-subnet.id]
+  subnet_id              = "subnet-09a1aadddd9ab4a59"
   provisioner "remote-exec" {
     inline = [
-      "sudo amazon-linux-extras install -y nginx1.12",
+      "sudo amazon-linux-extras install nginx1.12",
       "sudo systemctl start nginx"
     ]
 
@@ -104,6 +104,7 @@ resource "aws_instance" "myec2" {
 resource "aws_security_group" "allow_ssh" {
   name        = "allow_ssh"
   description = "Allow SSH inbound traffic"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     description = "SSH into VPC"
@@ -120,3 +121,8 @@ resource "aws_security_group" "allow_ssh" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+
+
+# "sudo amazon-linux-extras install -y nginx1.12",
+ # "sudo systemctl start nginx",
