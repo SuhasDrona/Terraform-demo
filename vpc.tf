@@ -12,7 +12,7 @@ resource "aws_vpc" "main" {
 
 # Subnets
 resource "aws_subnet" "main-public-subnet" {
-  
+
   count = length(var.cidr_block_public)
 
   vpc_id                  = aws_vpc.main.id
@@ -26,7 +26,7 @@ resource "aws_subnet" "main-public-subnet" {
 }
 
 resource "aws_subnet" "main-private-subnet" {
-  
+
   count = length(var.cidr_block_private)
 
   vpc_id                  = aws_vpc.main.id
@@ -77,3 +77,46 @@ resource "aws_subnet" "main-private-subnet" {
 #   subnet_id      = aws_subnet.main-public-3.id
 #   route_table_id = aws_route_table.main-public.id
 # }
+
+
+
+resource "aws_instance" "myec2" {
+  ami                    = "ami-04b6c97b14c54de18"
+  instance_type          = "t2.micro"
+  key_name               = "terraform-remote-exec"
+  vpc_security_group_ids = [aws_security_group.allow_ssh.id]
+  subnet_id              = [aws_subnet.main-public-subnet.id]
+  provisioner "remote-exec" {
+    inline = [
+      "sudo amazon-linux-extras install -y nginx1.12",
+      "sudo systemctl start nginx"
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = file("./terraform-remote-exec-test.pem")
+      host        = self.public_ip
+    }
+  }
+}
+
+resource "aws_security_group" "allow_ssh" {
+  name        = "allow_ssh"
+  description = "Allow SSH inbound traffic"
+
+  ingress {
+    description = "SSH into VPC"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    description = "Outbound Allowed"
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
