@@ -46,7 +46,8 @@ resource "aws_instance" "myec2" {
   instance_type          = "t2.micro"
   key_name               = "terraform-remote-exec-test"
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
-  subnet_id              = "subnet-09a1aadddd9ab4a59"
+  depends_on = [aws_subnet.main-public-subnet]
+  subnet_id              = aws_subnet.main-public-subnet[0].id
   provisioner "remote-exec" {
     inline = [
       "sudo amazon-linux-extras install nginx1.12",
@@ -85,26 +86,26 @@ resource "aws_security_group" "allow_ssh" {
 
 
 # s3 bucket for storing state file
-resource "aws_s3_bucket" "terraform_state" {
-  bucket = "terraform-tfstate-demo-remote-backend"
-  versioning {
-    enabled = true
-  }
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-}
+# resource "aws_s3_bucket" "terraform_state" {
+#   bucket = "terraform-tfstate-demo-remote-backend"
+#   versioning {
+#     enabled = true
+#   }
+#   server_side_encryption_configuration {
+#     rule {
+#       apply_server_side_encryption_by_default {
+#         sse_algorithm = "AES256"
+#       }
+#     }
+#   }
+# }
 
-resource "aws_dynamodb_table" "terraform_locks" {
-  name         = "terraform-lock-tfstate-demo"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-}
+# resource "aws_dynamodb_table" "terraform_locks" {
+#   name         = "terraform-lock-tfstate-demo"
+#   billing_mode = "PAY_PER_REQUEST"
+#   hash_key     = "LockID"
+#   attribute {
+#     name = "LockID"
+#     type = "S"
+#   }
+# }
