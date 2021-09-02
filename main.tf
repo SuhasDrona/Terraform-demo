@@ -55,28 +55,28 @@ resource "aws_subnet" "private-subnet" {
 
 # Internet Gateway
 resource "aws_internet_gateway" "gateway-test" {
-    vpc_id = aws_vpc.prod-vpc.id
-    tags = {
-        Name = "gateway-test"
-    }
+  vpc_id = aws_vpc.vpc-test.id
+  tags = {
+    Name = "gateway-test"
+  }
 }
 
 resource "aws_route_table" "public-route" {
-    vpc_id = aws_vpc.vpc_test.id
-    
-    route {
-        cidr_block = "0.0.0.0/0" 
-        gateway_id = aws_internet_gateway.prod-gateway.id
-    }
-    
-    tags = {
-        Name = "prod-public-route"
-    }
+  vpc_id = aws_vpc.vpc-test.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gateway-test.id
+  }
+
+  tags = {
+    Name = "prod-public-route"
+  }
 }
 
-resource "aws_route_table_association" "public-route-association"{
-    subnet_id = aws_subnet.public-subnet[0].id
-    route_table_id = aws_route_table.public-route.id
+resource "aws_route_table_association" "public-route-association" {
+  subnet_id      = aws_subnet.public-subnet[0].id
+  route_table_id = aws_route_table.public-route.id
 }
 
 resource "aws_key_pair" "terraform" {
@@ -89,8 +89,8 @@ resource "aws_instance" "myec2" {
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.terraform.key_name
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
-  depends_on = [aws_subnet.prod-public-subnet]
-  subnet_id              = aws_subnet.prod-public-subnet[0].id
+  depends_on             = [aws_subnet.public-subnet]
+  subnet_id              = aws_subnet.public-subnet[0].id
   provisioner "remote-exec" {
     inline = [
       # "sudo amazon-linux-extras install nginx1.12",
@@ -135,7 +135,7 @@ terraform {
   backend "s3" {
     bucket = "terraform-tfstate-demo-remote-backend"
     key    = "terraform.tfstate"
-    region = "us-east-1"
+    region = "us-west-1"
 
     dynamodb_table = "s3-lock-tfstate-demo"
   }
