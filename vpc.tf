@@ -40,45 +40,6 @@ resource "aws_subnet" "main-private-subnet" {
 }
 
 
-# Internet GW
-# resource "aws_internet_gateway" "main-gw" {
-#   vpc_id = aws_vpc.main.id
-
-#   tags = {
-#     Name = "main"
-#   }
-# }
-
-# route tables
-# resource "aws_route_table" "main-public" {
-#   vpc_id = aws_vpc.main.id
-#   route {
-#     cidr_block = "0.0.0.0/0"
-#     gateway_id = aws_internet_gateway.main-gw.id
-#   }
-
-#   tags = {
-#     Name = "main-public-1"
-#   }
-# }
-
-# route associations public
-# resource "aws_route_table_association" "main-public-1-a" {
-#   subnet_id      = aws_subnet.main-public-1.id
-#   route_table_id = aws_route_table.main-public.id
-# }
-
-# resource "aws_route_table_association" "main-public-2-a" {
-#   subnet_id      = aws_subnet.main-public-2.id
-#   route_table_id = aws_route_table.main-public.id
-# }
-
-# resource "aws_route_table_association" "main-public-3-a" {
-#   subnet_id      = aws_subnet.main-public-3.id
-#   route_table_id = aws_route_table.main-public.id
-# }
-
-
 
 resource "aws_instance" "myec2" {
   ami                    = "ami-04b6c97b14c54de18"
@@ -123,6 +84,27 @@ resource "aws_security_group" "allow_ssh" {
 }
 
 
+# s3 bucket for storing state file
+resource "aws_s3_bucket" "terraform_state" {
+  bucket = "terraform-tfstate-demo-remote-backend"
+  versioning {
+    enabled = true
+  }
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
 
-# "sudo amazon-linux-extras install -y nginx1.12",
- # "sudo systemctl start nginx",
+resource "aws_dynamodb_table" "terraform_locks" {
+  name         = "terraform-lock-tfstate-demo"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+}
