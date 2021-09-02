@@ -1,7 +1,6 @@
-variable "AWS_REGION" {
-  default = "us-west-1"
+variable "aws_region" {
+  default = "us-east-1"
 }
-
 
 variable "cidr_block_public" {
   type    = list(string)
@@ -15,5 +14,5 @@ variable "cidr_block_private" {
 
 variable "availability_zone" {
   type    = list(string)
-  default = ["us-west-1a", "us-west-1b"]
+  default = ["us-east-1a", "us-east-1b"]
 }
