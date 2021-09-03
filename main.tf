@@ -81,7 +81,7 @@ resource "aws_route_table_association" "public-route-association" {
 
 resource "aws_key_pair" "terraform" {
   key_name   = "terraform"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCbWKzpANcDp1oEahU8FpHxxP3z3B/7iPH6a26m3UPIiUSFuOpPpat2K48maelsFGXKkuHc5rnd8sC6aHJJ0BQT2cGDvfqJua3or5Xr720lHsmlD96Di+vX6nhrAh34hQJvuYbCBxCZvwg1GaEBT6J4CIU4lI+YlNv98u55wEiLwBfSkFJfPykS3qg+oHV+1SSBO6rYrLusqYJvXEhe/dYMsdeJriL0ebj4M36VP4ouutaO3YpLflkbWLm0hIYYg6ZRpBzKUMq5pXsQhzr0XlNYBRnOR+4i7112Cg9S28zhJ/jZv+nkZURnvghabkYLSkjXFfb3BGYBgRan3ixhswVtNA6inzzw6LrcyAYQzIbwnnAgG9SlRHS82pewXtfJcW2vJptVSNptxOSNDnsxGJGvEydPPaDn0lgLCUqzxo8X99NUl0glQ0k/QPdxvcG4mczWW3FHBBhqguOGQxtiwWU7EZw9EK2//dAGPxOOuvb/BRD/tEXlACB6eo930RGWgnE="
+  public_key = file("~/.ssh/id_rsa.pub")
 }
 
 resource "aws_instance" "myec2" {
@@ -102,9 +102,10 @@ resource "aws_instance" "myec2" {
     connection {
       type        = "ssh"
       user        = "ec2-user"
-      private_key = file("./terraform-remote-exec-test.pem")
+      private_key = file("~/.ssh/id_rsa")
       host        = self.public_ip
       timeout     = "30s"
+      agent = true
     }
   }
 }
